@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Street Shooter Generator</title>
+  
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0b0d14">
+  
+  <style>
+    :root {
+      --bg-color: #0b0d14;
+      --card-bg: #131622;
+      --card-border: #23283b;
+      --accent-green: #10b981;
+      --accent-green-hover: #059669;
+      --text-main: #f3f4f6;
+      --text-sub: #9ca3af;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    .app-header {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .app-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #ffffff;
+    }
+
+    .app-header p {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      margin-top: 4px;
+    }
+
+    /* Slot Machine Frame */
+    .slot-container {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .slot-labels {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: var(--text-sub);
+      text-transform: uppercase;
+    }
+
+    .slot-reels-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .reel-box {
+      background-color: var(--card-bg);
+      border: 1.5px solid var(--card-border);
+      border-radius: 12px;
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 10px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    .reel-content {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #ffffff;
+      line-height: 1.25;
+      transition: transform 0.1s ease-out;
+    }
+
+    .slot-separator {
+      font-size: 1.2rem;
+      color: #4b5563;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    /* Spin Animation Effects */
+    .blur-spin {
+      filter: blur(3px);
+      transform: translateY(-20px);
+    }
+
+    /* Spin Button */
+    .spin-btn {
+      width: 100%;
+      max-width: 420px;
+      background-color: var(--accent-green);
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+      transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .spin-btn:active {
+      transform: scale(0.98);
+      background-color: var(--accent-green-hover);
+    }
+
+    .spin-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .slot-icon {
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-header">
+    <h1>Street Roulette</h1>
+    <p>Daily Photography Prompt</p>
+  </div>
+
+  <div class="slot-container">
+    <div class="slot-labels">
+      <span>Lens</span>
+      <span>Location</span>
+      <span>Prompt</span>
+    </div>
+
+    <div class="slot-reels-wrapper">
+      <div class="reel-box">
+        <div class="reel-content" id="reel-lens">Tap Spin</div>
+      </div>
+      <div class="reel-box">
+        <div class="reel-content" id="reel-location">Tap Spin</div>
+      </div>
+      <div class="reel-box">
+        <div class="reel-content" id="reel-prompt">Tap Spin</div>
+      </div>
+    </div>
+  </div>
+
+  <button class="spin-btn" id="spin-btn" onclick="spinSlots()">
+    <span class="slot-icon">🎰</span>
+    <span>Spin the Wheel</span>
+  </button>
+
+  <script>
+    // Configured Options
+    const lenses = [
+      "24mm f/2.8",
+      "50mm f/1.8",
+      "18-55mm (18mm)",
+      "18-55mm (35mm)",
+      "18-55mm (55mm)",
+      "17-50mm f/2.8"
+    ];
+
+    const locations = [
+      "Blyth South Beach",
+      "Blyth Quayside",
+      "Tynemouth Priory",
+      "Tynemouth Station",
+      "Newcastle Quayside",
+      "Grey Street",
+      "Ouseburn Valley",
+      "High Level Bridge",
+      "Monument & Grainger St",
+      "Cullercoats Harbour"
+    ];
+
+    const prompts = [
+      "Reflections & Water",
+      "High Contrast Shadows",
+      "Leading Lines",
+      "Frame Within a Frame",
+      "Pops of Red / Yellow",
+      "Low-Angle Perspective",
+      "Candid Silhouettes",
+      "Architectural Details",
+      "Motion Blur / Panning",
+      "Minimalist Composition"
+    ];
+
+    function getRandomItem(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function animateReel(elementId, dataset, finalValue, duration) {
+      const element = document.getElementById(elementId);
+      const intervalTime = 50;
+      const steps = duration / intervalTime;
+      let currentStep = 0;
+
+      element.classList.add('blur-spin');
+
+      const interval = setInterval(() => {
+        element.textContent = getRandomItem(dataset);
+        currentStep++;
+
+        if (currentStep >= steps) {
+          clearInterval(interval);
+          element.textContent = finalValue;
+          element.classList.remove('blur-spin');
+        }
+      }, intervalTime);
+    }
+
+    function spinSlots() {
+      const btn = document.getElementById('spin-btn');
+      btn.disabled = true;
+
+      // Pick final results
+      const selectedLens = getRandomItem(lenses);
+      const selectedLocation = getRandomItem(locations);
+      const selectedPrompt = getRandomItem(prompts);
+
+      // Trigger staggered reel animations
+      animateReel('reel-lens', lenses, selectedLens, 1000);
+      animateReel('reel-location', locations, selectedLocation, 1400);
+      animateReel('reel-prompt', prompts, selectedPrompt, 1800);
+
+      // Re-enable button after last reel finishes
+      setTimeout(() => {
+        btn.disabled = false;
+        // Haptic feedback for mobile devices
+        if (navigator.vibrate) {
+          navigator.vibrate([30, 50, 30]);
+        }
+      }, 1850);
+    }
+  </script>
+</body>
+</html>
